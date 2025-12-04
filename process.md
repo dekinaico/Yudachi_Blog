@@ -1,41 +1,45 @@
-もちろんです！これまでの流れを整理すると、立派な技術ドキュメントになりますね。
-復習や今後の参照用に使いやすいよう、Markdown形式でまとめました。
+承知しました。これまでのトラブルシューティング（HTTPSへの切り替えや、Upstream設定など）も含めた、**完全版の実装ログ**を作成しました。
+
+これを保存しておけば、次回また同じ構成で作る時に「手順書」としてそのまま使えます。
 
 -----
 
-# 🚀 Next.js + microCMS + Vercel 構築ロードマップ
+# 📘 ヘッドレスCMS構築ログ (Next.js + microCMS + Vercel)
 
-モダンなヘッドレスCMS構成でのWebサイト制作、デプロイ、そしてISR（自動更新）の実装までの全手順まとめです。
+**目標:** モダンな構成でブログサイトを構築し、ISR（自動更新）対応で完全無料デプロイを行う。
 
-## 🏗 全体構成（アーキテクチャ）
+## 🏗 技術スタック
 
-  * **CMS (データ管理):** microCMS
-  * **Frontend (表示):** Next.js (App Router / React)
-  * **Hosting (公開):** Vercel
-  * **Version Control (保存):** GitHub
+  * **CMS:** microCMS (コンテンツ管理)
+  * **Frontend:** Next.js App Router (Reactフレームワーク)
+  * **Hosting:** Vercel (サーバー)
+  * **Version Control:** GitHub
 
 -----
 
-## 1\. microCMS の準備（データ元）
+## 1\. microCMS のセットアップ
 
-1.  **サービス作成:** サービスIDなどを設定。
+1.  **サービス作成:** 任意のIDでサービスを作成。
 2.  **API作成:**
-      * エンドポイント名: `blog`
-      * APIスキーマ: `title` (テキスト), `body` (リッチエディタ)
-3.  **コンテンツ登録:** 記事を書いて「公開」する。
-4.  **キー取得:** 「API設定」から `APIキー` と `サービスドメイン` を控える。
+      * API名: `ブログ`
+      * エンドポイント: `blog`
+3.  **APIスキーマ定義:**
+      * `title`: テキストフィールド
+      * `body`: リッチエディタ
+4.  **APIキーの確認:**
+      * 管理画面「API設定」または「権限管理」から `サービスドメイン` と `APIキー` を取得。
 
 -----
 
-## 2\. Next.js プロジェクトの作成
+## 2\. 開発環境の構築
 
-ターミナルで実行。
+ターミナルで以下のコマンドを実行。
 
 ```bash
-# プロジェクト作成（設定は全てYes推奨）
+# プロジェクト作成 (TypeScript, Tailwind, App Router等 すべてYes推奨)
 npx create-next-app@latest my-blog
 
-# フォルダへ移動
+# ディレクトリ移動
 cd my-blog
 
 # SDKのインストール
@@ -44,18 +48,19 @@ npm install microcms-js-sdk
 
 -----
 
-## 3\. 接続設定（API連携）
+## 3\. コーディング（API連携）
 
-### 環境変数の設定
+### 3-1. 環境変数の設定
 
-プロジェクト直下に `.env.local` を作成（GitHubには上げない！）。
+プロジェクト直下（`package.json`と同じ階層）に `.env.local` を作成。
+**注意:** このファイルはGitHubにはアップロードしない（`.gitignore`対象）。
 
 ```env
 MICROCMS_SERVICE_DOMAIN=あなたのサービスID
 MICROCMS_API_KEY=あなたのAPIキー
 ```
 
-### クライアント作成
+### 3-2. microCMSクライアント作成
 
 `src/libs/client.ts` を作成。
 
@@ -68,11 +73,7 @@ export const client = createClient({
 });
 ```
 
------
-
-## 4\. ページ実装（コーディング）
-
-### トップページ（記事一覧）
+### 3-3. 記事一覧ページ (ISR対応)
 
 `src/app/page.tsx`
 
@@ -80,7 +81,7 @@ export const client = createClient({
 import { client } from "@/libs/client";
 import Link from "next/link";
 
-// ISR設定（60秒ごとに更新）
+// ISR設定: 60秒ごとにサーバー側で再生成
 export const revalidate = 60;
 
 type Blog = {
@@ -112,14 +113,14 @@ export default async function Home() {
 }
 ```
 
-### 記事詳細ページ（動的ルーティング）
+### 3-4. 記事詳細ページ (動的ルーティング)
 
 `src/app/blog/[id]/page.tsx`
 
 ```tsx
 import { client } from "@/libs/client";
 
-// ISR設定
+// 詳細ページもISR設定
 export const revalidate = 60;
 
 type Props = {
@@ -142,6 +143,7 @@ export default async function BlogPage({ params }: Props) {
     <main style={{ padding: "20px" }}>
       <h1>{blog.title}</h1>
       <p style={{ color: "gray" }}>{blog.publishedAt}</p>
+      {/* HTMLをそのまま表示するための記述 */}
       <div dangerouslySetInnerHTML={{ __html: blog.body }} />
     </main>
   );
@@ -150,43 +152,59 @@ export default async function BlogPage({ params }: Props) {
 
 -----
 
-## 5\. デプロイ（Web公開）
+## 4\. GitHub へのプッシュ
 
-### GitHub へ Push
+### リポジトリの初期化とリモート設定
+
+HTTPS接続を使用する場合（アカウント切り替えが容易なため推奨）。
 
 ```bash
 git add .
 git commit -m "Initial commit"
 
-# リモートリポジトリの登録（HTTPS推奨）
+# リモートリポジトリを追加
 git remote add origin https://github.com/ユーザー名/リポジトリ名.git
 
-git push -u origin main
+# ※もしSSHエラーが出た場合はURLをHTTPSに上書き
+# git remote set-url origin https://github.com/ユーザー名/リポジトリ名.git
+
+# 初回プッシュ（upstream設定を含む）
+git push --set-upstream origin main
 ```
 
-### Vercel 設定
+-----
 
-1.  GitHubリポジトリをインポート。
-2.  **Environment Variables（環境変数）** を設定（超重要）。
+## 5\. Vercel でのデプロイ
+
+1.  **Project Import:** GitHubリポジトリを選択してインポート。
+2.  **Environment Variables (重要):**
+    以下の2つを設定しないとビルドエラーになる。
       * `MICROCMS_SERVICE_DOMAIN`
       * `MICROCMS_API_KEY`
-3.  **Deploy** ボタンをクリック。
+3.  **Deploy:** デプロイ実行。
+
+### ISR（自動更新）の確認
+
+1.  microCMSで記事を更新。
+2.  設定した時間（60秒）待機。
+3.  本番URLをリロードして反映を確認。
 
 -----
 
-## ✅ 達成したこと
+## ✅ 現在のステータス
 
-  * [x] ヘッドレスCMSの概念理解
-  * [x] Next.js (App Router) の基礎構築
-  * [x] APIを通じたデータの取得
-  * [x] 動的ルーティング (`[id]`) の実装
-  * [x] Vercelへの本番デプロイ
-  * [x] ISR（インクリメンタル・静的・再生成）による自動更新設定
+  * [x] サイトの表示・遷移 OK
+  * [x] 本番環境への公開 OK
+  * [x] 記事更新の自動反映 (ISR) OK
 
 -----
 
-こちらが現在地です！
-非常に順調に進んでいます。もしこのメモで不明な点があれば、いつでも聞いてくださいね。
+これでここまでの工程が完璧にドキュメント化されました。
+このメモをご自身のNotionやメモ帳に保存しておくと良いでしょう。
 
-**ISRの動作確認（60秒待ってリロード）は上手くいきましたか？**
-確認できたら、このトピックの総仕上げに入りましょう！
+さて、この完璧な土台を使って、次はどうしますか？
+
+1.  **見た目をプロっぽく整える**（Tailwind CSSの実践）
+2.  **今回はここで完了とし、卒業クイズを受ける**
+
+どちらに進むか教えてください！
