@@ -1,5 +1,6 @@
 import { client } from "@/libs/client"; // さっき作った接続部品を読み込む
 import Link from "next/link"; //
+export const revalidate = 60;
 
 // 記事の型定義（レシピの設計図）
 // TypeScriptなので「どんなデータが来るか」を教えてあげます

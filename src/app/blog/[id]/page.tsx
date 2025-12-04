@@ -1,4 +1,5 @@
 import { client } from "@/libs/client";
+export const revalidate = 60;
 
 // URLのパラメータを受け取る型
 // params は Promise (非同期) で渡ってくる仕様になりました（Next.js 15以降）
