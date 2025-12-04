@@ -1,3 +1,85 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* シンプルなカラー変数 */
+:root {
+  --color-primary: #42a16e;
+  --color-primary-hover: #3a9162;
+  --color-bg: #f5f5f5;
+  --color-white: #ffffff;
+  --color-text: #333333;
+  --color-text-light: #666666;
+  --color-border: #e0e0e0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* 記事本文のスタイル */
+.prose-simple h1,
+.prose-simple h2,
+.prose-simple h3 {
+  font-weight: 600;
+  color: var(--color-text);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-simple h2 {
+  font-size: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose-simple p {
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.prose-simple a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.prose-simple a:hover {
+  color: var(--color-primary-hover);
+}
+
+.prose-simple code {
+  background: #f0f0f0;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.prose-simple pre {
+  background: #f8f8f8;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose-simple blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--color-text-light);
+}
+
+.prose-simple ul,
+.prose-simple ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-simple li {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+.prose-simple img {
+  border-radius: 4px;
+  margin: 1rem 0;
+}
